@@ -87,7 +87,7 @@ func (a *API) handleArchiveExportBoard(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", "attachment; filename="+filename)
 	w.Header().Set("Content-Transfer-Encoding", "binary")
 
-	if err := a.app.ExportArchive(w, opts); err != nil {
+	if err := a.app.ExportArchive(w, opts, userID); err != nil {
 		a.errorResponse(w, r, err)
 	}
 
@@ -246,7 +246,7 @@ func (a *API) handleArchiveExportTeam(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", "attachment; filename="+filename)
 	w.Header().Set("Content-Transfer-Encoding", "binary")
 
-	if err := a.app.ExportArchive(w, opts); err != nil {
+	if err := a.app.ExportArchive(w, opts, userID); err != nil {
 		a.errorResponse(w, r, err)
 	}
 

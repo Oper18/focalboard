@@ -143,6 +143,11 @@ func (s *SQLStore) CreateUser(user *model.User) (*model.User, error) {
 
 }
 
+func (s *SQLStore) CreateVolunteer(volunteer *model.Volunteer) (*model.Volunteer, error) {
+	return s.createVolunteer(s.db, volunteer)
+
+}
+
 func (s *SQLStore) DeleteBlock(blockID string, modifiedBy string) error {
 	if s.dbType == model.SqliteDBType {
 		return s.deleteBlock(s.db, blockID, modifiedBy)
@@ -313,6 +318,11 @@ func (s *SQLStore) GetBlock(blockID string) (*model.Block, error) {
 
 }
 
+func (s *SQLStore) GetBlockAcceptForUser(blockID string, userID string) (*model.Block, error) {
+	return s.getBlockAcceptForUser(s.db, blockID, userID)
+
+}
+
 func (s *SQLStore) GetBlockCountsByType() (map[string]int64, error) {
 	return s.getBlockCountsByType(s.db)
 
@@ -353,8 +363,18 @@ func (s *SQLStore) GetBlocksForBoard(boardID string) ([]*model.Block, error) {
 
 }
 
+func (s *SQLStore) GetBlocksForBoardAcceptForUser(boardID string, userID string) ([]*model.Block, error) {
+	return s.getBlocksForBoardAcceptForUser(s.db, boardID, userID)
+
+}
+
 func (s *SQLStore) GetBlocksWithParent(boardID string, parentID string) ([]*model.Block, error) {
 	return s.getBlocksWithParent(s.db, boardID, parentID)
+
+}
+
+func (s *SQLStore) GetBlocksWithParentAcceptForUser(boardID string, parentID string, userID string) ([]*model.Block, error) {
+	return s.getBlocksWithParentAcceptForUser(s.db, boardID, parentID, userID)
 
 }
 
@@ -363,8 +383,18 @@ func (s *SQLStore) GetBlocksWithParentAndType(boardID string, parentID string, b
 
 }
 
+func (s *SQLStore) GetBlocksWithParentAndTypeAcceptForUser(boardID string, parentID string, blockType string, userID string) ([]*model.Block, error) {
+	return s.getBlocksWithParentAndTypeAcceptForUser(s.db, boardID, parentID, blockType, userID)
+
+}
+
 func (s *SQLStore) GetBlocksWithType(boardID string, blockType string) ([]*model.Block, error) {
 	return s.getBlocksWithType(s.db, boardID, blockType)
+
+}
+
+func (s *SQLStore) GetBlocksWithTypeAcceptForUser(boardID string, blockType string, userID string) ([]*model.Block, error) {
+	return s.getBlocksWithTypeAcceptForUser(s.db, boardID, blockType, userID)
 
 }
 
@@ -448,6 +478,11 @@ func (s *SQLStore) GetMemberForBoard(boardID string, userID string) (*model.Boar
 
 }
 
+func (s *SQLStore) GetMembersForBlock(blockID string) ([]*model.BoardMember, error) {
+	return s.getMembersForBlock(s.db, blockID)
+
+}
+
 func (s *SQLStore) GetMembersForBoard(boardID string) ([]*model.BoardMember, error) {
 	return s.getMembersForBoard(s.db, boardID)
 
@@ -470,6 +505,16 @@ func (s *SQLStore) GetNotificationHint(blockID string) (*model.NotificationHint,
 
 func (s *SQLStore) GetRegisteredUserCount() (int, error) {
 	return s.getRegisteredUserCount(s.db)
+
+}
+
+func (s *SQLStore) GetRoleByName(name string) (*model.Role, error) {
+	return s.getRoleByName(s.db, name)
+
+}
+
+func (s *SQLStore) GetRoles() ([]*model.Role, error) {
+	return s.getRoles(s.db)
 
 }
 
@@ -585,6 +630,21 @@ func (s *SQLStore) GetUsersByTeam(teamID string, asGuestID string, showEmail boo
 
 func (s *SQLStore) GetUsersList(userIDs []string, showEmail bool, showName bool) ([]*model.User, error) {
 	return s.getUsersList(s.db, userIDs, showEmail, showName)
+
+}
+
+func (s *SQLStore) GetVolunteer(volunteerID int64) (*model.Volunteer, error) {
+	return s.getVolunteer(s.db, volunteerID)
+
+}
+
+func (s *SQLStore) GetVolunteersList(contact string, limit uint64, offset uint64) ([]*model.Volunteer, error) {
+	return s.getVolunteersList(s.db, contact, limit, offset)
+
+}
+
+func (s *SQLStore) HasUserPermissionTo(userID string, permissionID string) (*model.User, error) {
+	return s.hasUserPermissionTo(s.db, userID, permissionID)
 
 }
 
@@ -940,6 +1000,11 @@ func (s *SQLStore) UpdateUserPassword(username string, password string) error {
 
 func (s *SQLStore) UpdateUserPasswordByID(userID string, password string) error {
 	return s.updateUserPasswordByID(s.db, userID, password)
+
+}
+
+func (s *SQLStore) UpdateVolunteer(volunteer *model.Volunteer) (*model.Volunteer, error) {
+	return s.updateVolunteer(s.db, volunteer)
 
 }
 

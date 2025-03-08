@@ -7,17 +7,17 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-func (a *App) CreateSubscription(sub *model.Subscription) (*model.Subscription, error) {
+func (a *App) CreateSubscription(sub *model.Subscription, userID string) (*model.Subscription, error) {
 	sub, err := a.store.CreateSubscription(sub)
 	if err != nil {
 		return nil, err
 	}
-	a.notifySubscriptionChanged(sub)
+	a.notifySubscriptionChanged(sub, userID)
 
 	return sub, nil
 }
 
-func (a *App) DeleteSubscription(blockID string, subscriberID string) (*model.Subscription, error) {
+func (a *App) DeleteSubscription(blockID string, subscriberID string, userID string) (*model.Subscription, error) {
 	sub, err := a.store.GetSubscription(blockID, subscriberID)
 	if err != nil {
 		return nil, err
@@ -26,7 +26,7 @@ func (a *App) DeleteSubscription(blockID string, subscriberID string) (*model.Su
 		return nil, err
 	}
 	sub.DeleteAt = utils.GetMillis()
-	a.notifySubscriptionChanged(sub)
+	a.notifySubscriptionChanged(sub, userID)
 
 	return sub, nil
 }
@@ -35,12 +35,12 @@ func (a *App) GetSubscriptions(subscriberID string) ([]*model.Subscription, erro
 	return a.store.GetSubscriptions(subscriberID)
 }
 
-func (a *App) notifySubscriptionChanged(subscription *model.Subscription) {
+func (a *App) notifySubscriptionChanged(subscription *model.Subscription, userID string) {
 	if a.notifications == nil {
 		return
 	}
 
-	board, err := a.getBoardForBlock(subscription.BlockID)
+	board, err := a.getBoardForBlock(subscription.BlockID, userID)
 	if err != nil {
 		a.logger.Error("Error notifying subscription change",
 			mlog.String("subscriber_id", subscription.SubscriberID),

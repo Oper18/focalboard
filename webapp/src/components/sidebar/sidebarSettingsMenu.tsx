@@ -24,6 +24,8 @@ import {UserSettings} from '../../userSettings'
 import './sidebarSettingsMenu.scss'
 import CheckIcon from '../../widgets/icons/check'
 import {Constants} from '../../constants'
+import {getMe} from '../../store/users'
+import {IUser} from '../../user'
 
 import TelemetryClient, {TelemetryCategory, TelemetryActions} from '../../telemetry/telemetryClient'
 
@@ -35,6 +37,7 @@ const SidebarSettingsMenu = (props: Props) => {
     const intl = useIntl()
     const dispatch = useAppDispatch()
     const currentTeam = useAppSelector<Team|null>(getCurrentTeam)
+    const me = useAppSelector<IUser|null>(getMe)
 
     // we need this as the sidebar doesn't always need to re-render
     // on theme change. This can cause props and the actual
@@ -85,43 +88,47 @@ const SidebarSettingsMenu = (props: Props) => {
                     />
                 </div>
                 <Menu position='top'>
-                    <Menu.SubMenu
-                        id='import'
-                        name={intl.formatMessage({id: 'Sidebar.import', defaultMessage: 'Import'})}
-                        position='top'
-                    >
+                    {me?.permissions?.includes('manage_board_properties') ? (
+                        <Menu.SubMenu
+                            id='import'
+                            name={intl.formatMessage({id: 'Sidebar.import', defaultMessage: 'Import'})}
+                            position='top'
+                        >
+                            <Menu.Text
+                                id='import_archive'
+                                name={intl.formatMessage({id: 'Sidebar.import-archive', defaultMessage: 'Import archive'})}
+                                onClick={async () => {
+                                    TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.ImportArchive)
+                                    Archiver.importFullArchive()
+                                }}
+                            />
+                            {
+                                Constants.imports.map((i) => (
+                                    <Menu.Text
+                                        key={`${i.id}-import`}
+                                        id={`${i.id}-import`}
+                                        name={i.displayName}
+                                        onClick={() => {
+                                            TelemetryClient.trackEvent(TelemetryCategory, i.telemetryName)
+                                            window.open(i.href)
+                                        }}
+                                    />
+                                ))
+                            }
+                        </Menu.SubMenu>
+                    ) : null}
+                    {me?.permissions?.includes('manage_board_properties') ? (
                         <Menu.Text
-                            id='import_archive'
-                            name={intl.formatMessage({id: 'Sidebar.import-archive', defaultMessage: 'Import archive'})}
+                            id='export'
+                            name={intl.formatMessage({id: 'Sidebar.export-archive', defaultMessage: 'Export archive'})}
                             onClick={async () => {
-                                TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.ImportArchive)
-                                Archiver.importFullArchive()
+                                if (currentTeam) {
+                                    TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.ExportArchive)
+                                    Archiver.exportFullArchive(currentTeam.id)
+                                }
                             }}
                         />
-                        {
-                            Constants.imports.map((i) => (
-                                <Menu.Text
-                                    key={`${i.id}-import`}
-                                    id={`${i.id}-import`}
-                                    name={i.displayName}
-                                    onClick={() => {
-                                        TelemetryClient.trackEvent(TelemetryCategory, i.telemetryName)
-                                        window.open(i.href)
-                                    }}
-                                />
-                            ))
-                        }
-                    </Menu.SubMenu>
-                    <Menu.Text
-                        id='export'
-                        name={intl.formatMessage({id: 'Sidebar.export-archive', defaultMessage: 'Export archive'})}
-                        onClick={async () => {
-                            if (currentTeam) {
-                                TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.ExportArchive)
-                                Archiver.exportFullArchive(currentTeam.id)
-                            }
-                        }}
-                    />
+                    ) : null}
                     <Menu.SubMenu
                         id='lang'
                         name={intl.formatMessage({id: 'Sidebar.set-language', defaultMessage: 'Set language'})}
@@ -158,13 +165,15 @@ const SidebarSettingsMenu = (props: Props) => {
                             )
                         }
                     </Menu.SubMenu>
-                    <Menu.Switch
-                        id='random-icons'
-                        name={intl.formatMessage({id: 'Sidebar.random-icons', defaultMessage: 'Random icons'})}
-                        isOn={randomIcons}
-                        onClick={async () => toggleRandomIcons()}
-                        suppressItemClicked={true}
-                    />
+                    {me?.permissions?.includes('manage_board_properties') ? (
+                        <Menu.Switch
+                            id='random-icons'
+                            name={intl.formatMessage({id: 'Sidebar.random-icons', defaultMessage: 'Random icons'})}
+                            isOn={randomIcons}
+                            onClick={async () => toggleRandomIcons()}
+                            suppressItemClicked={true}
+                        />
+                    ) : null}
                 </Menu>
             </MenuWrapper>
         </div>

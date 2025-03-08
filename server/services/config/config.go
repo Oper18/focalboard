@@ -67,8 +67,11 @@ type Configuration struct {
 	AuditCfgFile string `json:"audit_cfg_file" mapstructure:"audit_cfg_file"`
 	AuditCfgJSON string `json:"audit_cfg_json" mapstructure:"audit_cfg_json"`
 
-	NotifyFreqCardSeconds  int `json:"notify_freq_card_seconds" mapstructure:"notify_freq_card_seconds"`
-	NotifyFreqBoardSeconds int `json:"notify_freq_board_seconds" mapstructure:"notify_freq_board_seconds"`
+	NotifyFreqCardSeconds  int    `json:"notify_freq_card_seconds" mapstructure:"notify_freq_card_seconds"`
+	NotifyFreqBoardSeconds int    `json:"notify_freq_board_seconds" mapstructure:"notify_freq_board_seconds"`
+	MatrixSynapseUrl       string `json:"matrixSynapseUrl"`
+	MatrixSynapseSecret    string `json:"matrixSynapseSecret"`
+	JWTSecretKey           string `json:"jwtSecretKey"`
 }
 
 // ReadConfigFile read the configuration from the filesystem.
@@ -110,6 +113,8 @@ func ReadConfigFile(configFilePath string) (*Configuration, error) {
 	viper.SetDefault("TeammateNameDisplay", "username")
 	viper.SetDefault("ShowEmailAddress", false)
 	viper.SetDefault("ShowFullName", false)
+	viper.SetDefault("matrixSynapseUrl", "")
+	viper.SetDefault("jwtSecretKey", "jwt_secret_key")
 
 	err := viper.ReadInConfig() // Find and read the config file
 	if err != nil {             // Handle errors reading the config file

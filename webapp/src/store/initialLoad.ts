@@ -29,9 +29,9 @@ export const initialLoad = createAsyncThunk(
         }
 
         // if no team, either bad id, or user doesn't have access
-        if (!team) {
-            throw new Error(ErrorId.TeamUndefined)
-        }
+        // if (!team) {
+        //     throw new Error(ErrorId.TeamUndefined)
+        // }
         return {
             team,
             teams,

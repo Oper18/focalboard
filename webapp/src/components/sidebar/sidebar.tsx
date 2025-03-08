@@ -407,15 +407,17 @@ const Sidebar = (props: Props) => {
 
             <div className='octo-spacer'/>
 
-            <div
-                className='add-board'
-                onClick={props.onBoardTemplateSelectorOpen}
-            >
-                <FormattedMessage
-                    id='Sidebar.add-board'
-                    defaultMessage='+ Add board'
-                />
-            </div>
+            {me?.permissions?.includes('manage_board_properties') ? (
+                <div
+                    className='add-board'
+                    onClick={props.onBoardTemplateSelectorOpen}
+                >
+                    <FormattedMessage
+                        id='Sidebar.add-board'
+                        defaultMessage='+ Add board'
+                    />
+                </div>
+            ) : null}
 
             <SidebarSettingsMenu activeTheme={getActiveThemeName()}/>
         </div>

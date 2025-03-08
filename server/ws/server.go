@@ -513,6 +513,41 @@ func (ws *Server) getListenersForTeamAndBoard(teamID, boardID string, ensureUser
 	return listeners
 }
 
+func (ws *Server) getListenersForTeamAndBlock(teamID, blockID string, ensureUsers ...string) []*websocketSession {
+	members, err := ws.store.GetMembersForBlock(blockID)
+	if err != nil {
+		ws.logger.Error("error getting members for block",
+			mlog.String("method", "getListenersForTeamAndBoard"),
+			mlog.String("teamID", teamID),
+			mlog.String("blockID", blockID),
+		)
+		return nil
+	}
+
+	memberMap := map[string]bool{}
+	for _, member := range members {
+		memberMap[member.UserID] = true
+	}
+	for _, id := range ensureUsers {
+		memberMap[id] = true
+	}
+
+	memberIDs := []string{}
+	for id := range memberMap {
+		memberIDs = append(memberIDs, id)
+	}
+
+	listeners := []*websocketSession{}
+	for _, memberID := range memberIDs {
+		for _, listener := range ws.listenersByTeam[teamID] {
+			if listener.userID == memberID {
+				listeners = append(listeners, listener)
+			}
+		}
+	}
+	return listeners
+}
+
 // BroadcastBlockDelete broadcasts delete messages to clients.
 func (ws *Server) BroadcastBlockDelete(teamID, blockID, boardID string) {
 	now := utils.GetMillis()
@@ -535,7 +570,7 @@ func (ws *Server) BroadcastBlockChange(teamID string, block *model.Block) {
 		Block:  block,
 	}
 
-	listeners := ws.getListenersForTeamAndBoard(teamID, block.BoardID)
+	listeners := ws.getListenersForTeamAndBlock(teamID, block.ID)
 	ws.logger.Trace("listener(s) for teamID",
 		mlog.Int("listener_count", len(listeners)),
 		mlog.String("teamID", teamID),

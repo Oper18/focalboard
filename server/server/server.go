@@ -27,6 +27,8 @@ import (
 	"github.com/mattermost/focalboard/server/services/store"
 	"github.com/mattermost/focalboard/server/services/store/sqlstore"
 	"github.com/mattermost/focalboard/server/services/telemetry"
+	"github.com/mattermost/focalboard/server/services/thirdparty"
+	"github.com/mattermost/focalboard/server/services/thirdparty/matrixsynapse"
 	"github.com/mattermost/focalboard/server/services/webhook"
 	"github.com/mattermost/focalboard/server/utils"
 	"github.com/mattermost/focalboard/server/web"
@@ -129,6 +131,8 @@ func New(params Params) (*Server, error) {
 		return nil, fmt.Errorf("cannot initialize notification service(s): %w", errNotify)
 	}
 
+	thirdParty, err := NewThirdParty(params.Cfg, params.Logger)
+
 	appServices := app.Services{
 		Auth:             authenticator,
 		Store:            params.DBStore,
@@ -140,6 +144,7 @@ func New(params Params) (*Server, error) {
 		Permissions:      params.PermissionsService,
 		ServicesAPI:      params.ServicesAPI,
 		SkipTemplateInit: utils.IsRunningUnitTests(),
+		ThirdParty:       thirdParty,
 	}
 	app := app.New(params.Cfg, wsAdapter, appServices)
 
@@ -237,6 +242,15 @@ func NewStore(config *config.Configuration, isSingleUser bool, logger mlog.Logge
 		return nil, err
 	}
 	return db, nil
+}
+
+func NewThirdParty(config *config.Configuration, logger mlog.LoggerIFace) (thirdparty.ThirdParty, error) {
+	var tp thirdparty.ThirdParty
+	tp, err := matrixsynapse.New(config, logger)
+	if err != nil {
+		return nil, err
+	}
+	return tp, nil
 }
 
 func (s *Server) Start() error {

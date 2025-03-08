@@ -33,6 +33,9 @@ It helps define, organize, track and manage work across individuals and teams. F
 
 **Ubuntu**: You can download and run the compiled Focalboard **Personal Server** on Ubuntu by following [our latest install guide](https://www.focalboard.com/download/personal-edition/ubuntu/).
 
+**Build from source**:
+ - Create user using cli command: `go run ./cli/main.go --username <username> --password <password> --email <user_email> --role <role_name>`
+
 ### API Docs
 
 Boards API docs can be found over at <https://htmlpreview.github.io/?https://github.com/mattermost/focalboard/blob/main/server/swagger/docs/html/index.html>

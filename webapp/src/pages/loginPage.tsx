@@ -85,12 +85,6 @@ const LoginPage = () => {
                     />
                 </Button>
             </form>
-            <Link to='/register'>
-                <FormattedMessage
-                    id='login.register-button'
-                    defaultMessage={'or create an account if you don\'t have one'}
-                />
-            </Link>
             {errorMessage &&
                 <div className='error'>
                     {errorMessage}

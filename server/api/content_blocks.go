@@ -58,13 +58,13 @@ func (a *API) handleMoveBlockTo(w http.ResponseWriter, r *http.Request) {
 	where := mux.Vars(r)["where"]
 	userID := getUserID(r)
 
-	block, err := a.app.GetBlockByID(blockID)
+	block, err := a.app.GetBlockByID(blockID, userID)
 	if err != nil {
 		a.errorResponse(w, r, err)
 		return
 	}
 
-	dstBlock, err := a.app.GetBlockByID(dstBlockID)
+	dstBlock, err := a.app.GetBlockByID(dstBlockID, userID)
 	if err != nil {
 		a.errorResponse(w, r, err)
 		return

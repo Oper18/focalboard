@@ -276,7 +276,7 @@ func (a *API) handlePatchCard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	card, err := a.app.GetCardByID(cardID)
+	card, err := a.app.GetCardByID(cardID, userID)
 	if err != nil {
 		message := fmt.Sprintf("could not fetch card %s: %s", cardID, err)
 		a.errorResponse(w, r, model.NewErrBadRequest(message))
@@ -353,7 +353,7 @@ func (a *API) handleGetCard(w http.ResponseWriter, r *http.Request) {
 	userID := getUserID(r)
 	cardID := mux.Vars(r)["cardID"]
 
-	card, err := a.app.GetCardByID(cardID)
+	card, err := a.app.GetCardByID(cardID, userID)
 	if err != nil {
 		message := fmt.Sprintf("could not fetch card %s: %s", cardID, err)
 		a.errorResponse(w, r, model.NewErrBadRequest(message))

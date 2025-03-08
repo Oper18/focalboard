@@ -16,11 +16,15 @@ const CardLimitTimestampSystemKey = "card_limit_timestamp"
 type Store interface {
 	GetBlocks(opts model.QueryBlocksOptions) ([]*model.Block, error)
 	GetBlocksWithParentAndType(boardID, parentID string, blockType string) ([]*model.Block, error)
+	GetBlocksWithParentAndTypeAcceptForUser(boardID, parentID string, blockType string, userID string) ([]*model.Block, error)
 	GetBlocksWithParent(boardID, parentID string) ([]*model.Block, error)
+	GetBlocksWithParentAcceptForUser(boardID, parentID string, userID string) ([]*model.Block, error)
 	GetBlocksByIDs(ids []string) ([]*model.Block, error)
 	GetBlocksWithType(boardID, blockType string) ([]*model.Block, error)
+	GetBlocksWithTypeAcceptForUser(boardID, blockType string, userID string) ([]*model.Block, error)
 	GetSubTree2(boardID, blockID string, opts model.QuerySubtreeOptions) ([]*model.Block, error)
 	GetBlocksForBoard(boardID string) ([]*model.Block, error)
+	GetBlocksForBoardAcceptForUser(boardID string, userID string) ([]*model.Block, error)
 	// @withTransaction
 	InsertBlock(block *model.Block, userID string) error
 	// @withTransaction
@@ -34,6 +38,7 @@ type Store interface {
 	GetBlockCountsByType() (map[string]int64, error)
 	GetBoardCount() (int64, error)
 	GetBlock(blockID string) (*model.Block, error)
+	GetBlockAcceptForUser(blockID string, userID string) (*model.Block, error)
 	// @withTransaction
 	PatchBlock(blockID string, blockPatch *model.BlockPatch, userID string) error
 	GetBlockHistory(blockID string, opts model.QueryBlockHistoryOptions) ([]*model.Block, error)
@@ -102,6 +107,7 @@ type Store interface {
 	DeleteMember(boardID, userID string) error
 	GetMemberForBoard(boardID, userID string) (*model.BoardMember, error)
 	GetBoardMemberHistory(boardID, userID string, limit uint64) ([]*model.BoardMemberHistoryEntry, error)
+	GetMembersForBlock(blockID string) ([]*model.BoardMember, error)
 	GetMembersForBoard(boardID string) ([]*model.BoardMember, error)
 	GetMembersForUser(userID string) ([]*model.BoardMember, error)
 	CanSeeUser(seerID string, seenID string) (bool, error)
@@ -178,6 +184,15 @@ type Store interface {
 	// For unit testing only
 	DeleteBoardRecord(boardID, modifiedBy string) error
 	DeleteBlockRecord(blockID, modifiedBy string) error
+	HasUserPermissionTo(userID string, permissionID string) (*model.User, error)
+
+	GetRoles() ([]*model.Role, error)
+	GetRoleByName(name string) (*model.Role, error)
+
+	CreateVolunteer(volunteer *model.Volunteer) (*model.Volunteer, error)
+	UpdateVolunteer(volunteer *model.Volunteer) (*model.Volunteer, error)
+	GetVolunteer(volunteerID int64) (*model.Volunteer, error)
+	GetVolunteersList(contact string, limit, offset uint64) ([]*model.Volunteer, error)
 }
 
 type NotSupportedError struct {

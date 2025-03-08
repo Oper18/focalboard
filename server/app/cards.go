@@ -81,8 +81,8 @@ func (a *App) PatchCard(cardPatch *model.CardPatch, cardID string, userID string
 	return newCard, nil
 }
 
-func (a *App) GetCardByID(cardID string) (*model.Card, error) {
-	cardBlock, err := a.GetBlockByID(cardID)
+func (a *App) GetCardByID(cardID string, userID string) (*model.Card, error) {
+	cardBlock, err := a.GetBlockByID(cardID, userID)
 	if err != nil {
 		return nil, err
 	}

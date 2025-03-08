@@ -68,13 +68,15 @@ const SidebarUserMenu = () => {
                                     history.push('/change_password')
                                 }}
                             />
-                            <Menu.Text
-                                id='invite'
-                                name={intl.formatMessage({id: 'Sidebar.invite-users', defaultMessage: 'Invite users'})}
-                                onClick={async () => {
-                                    setShowRegistrationLinkDialog(true)
-                                }}
-                            />
+                            {user?.permissions?.includes('manage_board_properties') ? (
+                                <Menu.Text
+                                    id='invite'
+                                    name={intl.formatMessage({id: 'Sidebar.invite-users', defaultMessage: 'Invite users'})}
+                                    onClick={async () => {
+                                        setShowRegistrationLinkDialog(true)
+                                    }}
+                                />
+                            ) : null}
 
                             <Menu.Separator/>
                         </>}

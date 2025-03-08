@@ -70,6 +70,27 @@ func (s *SQLStore) getBlocks(db sq.BaseRunner, opts model.QueryBlocksOptions) ([
 		query = query.Where(sq.Eq{"type": opts.BlockType})
 	}
 
+	if opts.UserID != "" {
+		query = query.
+			Where(
+				sq.Or{
+					sq.And{
+						sq.Expr(`
+    				    EXISTS (
+    				        SELECT 1
+    				        FROM json_each_text(fields -> 'properties') AS fields(key, value)
+    				        WHERE value = ?
+    				    )
+    				  `,
+							opts.UserID,
+						),
+						sq.Eq{"type": "card"},
+					},
+					sq.NotEq{"type": "card"},
+				},
+			)
+	}
+
 	if opts.Page != 0 {
 		query = query.Offset(uint64(opts.Page * opts.PerPage))
 	}
@@ -98,10 +119,29 @@ func (s *SQLStore) getBlocksWithParentAndType(db sq.BaseRunner, boardID, parentI
 	return s.getBlocks(db, opts)
 }
 
+func (s *SQLStore) getBlocksWithParentAndTypeAcceptForUser(db sq.BaseRunner, boardID, parentID string, blockType string, userID string) ([]*model.Block, error) {
+	opts := model.QueryBlocksOptions{
+		BoardID:   boardID,
+		ParentID:  parentID,
+		BlockType: model.BlockType(blockType),
+		UserID:    userID,
+	}
+	return s.getBlocks(db, opts)
+}
+
 func (s *SQLStore) getBlocksWithParent(db sq.BaseRunner, boardID, parentID string) ([]*model.Block, error) {
 	opts := model.QueryBlocksOptions{
 		BoardID:  boardID,
 		ParentID: parentID,
+	}
+	return s.getBlocks(db, opts)
+}
+
+func (s *SQLStore) getBlocksWithParentAcceptForUser(db sq.BaseRunner, boardID, parentID string, userID string) ([]*model.Block, error) {
+	opts := model.QueryBlocksOptions{
+		BoardID:  boardID,
+		ParentID: parentID,
+		UserID:   userID,
 	}
 	return s.getBlocks(db, opts)
 }
@@ -136,6 +176,15 @@ func (s *SQLStore) getBlocksWithType(db sq.BaseRunner, boardID, blockType string
 	opts := model.QueryBlocksOptions{
 		BoardID:   boardID,
 		BlockType: model.BlockType(blockType),
+	}
+	return s.getBlocks(db, opts)
+}
+
+func (s *SQLStore) getBlocksWithTypeAcceptForUser(db sq.BaseRunner, boardID, blockType string, userID string) ([]*model.Block, error) {
+	opts := model.QueryBlocksOptions{
+		BoardID:   boardID,
+		BlockType: model.BlockType(blockType),
+		UserID:    userID,
 	}
 	return s.getBlocks(db, opts)
 }
@@ -175,6 +224,14 @@ func (s *SQLStore) getSubTree2(db sq.BaseRunner, boardID string, blockID string,
 func (s *SQLStore) getBlocksForBoard(db sq.BaseRunner, boardID string) ([]*model.Block, error) {
 	opts := model.QueryBlocksOptions{
 		BoardID: boardID,
+	}
+	return s.getBlocks(db, opts)
+}
+
+func (s *SQLStore) getBlocksForBoardAcceptForUser(db sq.BaseRunner, boardID string, userID string) ([]*model.Block, error) {
+	opts := model.QueryBlocksOptions{
+		BoardID: boardID,
+		UserID:  userID,
 	}
 	return s.getBlocks(db, opts)
 }
@@ -573,11 +630,24 @@ func (s *SQLStore) getBoardCount(db sq.BaseRunner) (int64, error) {
 	return count, nil
 }
 
-func (s *SQLStore) getBlock(db sq.BaseRunner, blockID string) (*model.Block, error) {
+func (s *SQLStore) getBlockCondition(db sq.BaseRunner, blockID string, userID string) (*model.Block, error) {
 	query := s.getQueryBuilder(db).
 		Select(s.blockFields("")...).
 		From(s.tablePrefix + "blocks").
 		Where(sq.Eq{"id": blockID})
+
+	if userID != "" {
+		query = query.
+			Where(
+				sq.Expr(`
+    		        EXISTS (
+    		            SELECT 1
+    		            FROM json_each_text(fields -> 'properties') AS fields(key, value)
+    		            WHERE value = ?
+    		        )
+    		    `, userID),
+			)
+	}
 
 	rows, err := query.Query()
 	if err != nil {
@@ -596,6 +666,14 @@ func (s *SQLStore) getBlock(db sq.BaseRunner, blockID string) (*model.Block, err
 	}
 
 	return blocks[0], nil
+}
+
+func (s *SQLStore) getBlock(db sq.BaseRunner, blockID string) (*model.Block, error) {
+	return s.getBlockCondition(db, blockID, "")
+}
+
+func (s *SQLStore) getBlockAcceptForUser(db sq.BaseRunner, blockID string, userID string) (*model.Block, error) {
+	return s.getBlockCondition(db, blockID, userID)
 }
 
 func (s *SQLStore) getBlockHistory(db sq.BaseRunner, blockID string, opts model.QueryBlockHistoryOptions) ([]*model.Block, error) {

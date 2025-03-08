@@ -93,12 +93,18 @@ func (a *API) RegisterRoutes(r *mux.Router) {
 	a.registerContentBlocksRoutes(apiv2)
 	a.registerStatisticsRoutes(apiv2)
 	a.registerComplianceRoutes(apiv2)
+	a.registerVolunteerRoutes(apiv2)
 
 	// V3 routes
 	a.registerCardsRoutes(apiv2)
 
 	// System routes are outside the /api/v2 path
 	a.registerSystemRoutes(r)
+}
+
+func (a *API) RegisterPublicAPIRoutes(r *mux.Router) {
+	apiv2 := r.PathPrefix("/api/v2").Subrouter()
+	a.registerPublicVolunteerRoutes(apiv2)
 }
 
 func (a *API) RegisterAdminRoutes(r *mux.Router) {

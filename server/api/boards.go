@@ -54,9 +54,13 @@ func (a *API) handleGetBoards(w http.ResponseWriter, r *http.Request) {
 	teamID := mux.Vars(r)["teamID"]
 	userID := getUserID(r)
 
+	adminAccess := true
 	if !a.permissions.HasPermissionToTeam(userID, teamID, model.PermissionViewTeam) {
-		a.errorResponse(w, r, model.NewErrPermission("access denied to team"))
-		return
+		if !a.permissions.HasPermissionToBoard(userID, "", model.PermissionViewBoard) {
+			a.errorResponse(w, r, model.NewErrPermission("access denied to team and board"))
+			return
+		}
+		adminAccess = false
 	}
 
 	auditRec := a.makeAuditRecord(r, "getBoards", audit.Fail)
@@ -68,9 +72,12 @@ func (a *API) handleGetBoards(w http.ResponseWriter, r *http.Request) {
 		a.errorResponse(w, r, err)
 		return
 	}
+	if isGuest == true {
+		adminAccess = false
+	}
 
 	// retrieve boards list
-	boards, err := a.app.GetBoardsForUserAndTeam(userID, teamID, !isGuest)
+	boards, err := a.app.GetBoardsForUserAndTeam(userID, teamID, adminAccess)
 	if err != nil {
 		a.errorResponse(w, r, err)
 		return
@@ -135,14 +142,14 @@ func (a *API) handleCreateBoard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !a.permissions.HasPermissionToTeam(userID, newBoard.TeamID, model.PermissionManageBoardProperties) {
+		a.errorResponse(w, r, model.NewErrPermission("access denied to create boards"))
+		return
+	}
+
 	if newBoard.Type == model.BoardTypeOpen {
-		if !a.permissions.HasPermissionToTeam(userID, newBoard.TeamID, model.PermissionCreatePublicChannel) {
+		if !a.permissions.HasPermissionToTeam(userID, newBoard.TeamID, model.PermissionManageSystem) {
 			a.errorResponse(w, r, model.NewErrPermission("access denied to create public boards"))
-			return
-		}
-	} else {
-		if !a.permissions.HasPermissionToTeam(userID, newBoard.TeamID, model.PermissionCreatePrivateChannel) {
-			a.errorResponse(w, r, model.NewErrPermission("access denied to create private boards"))
 			return
 		}
 	}

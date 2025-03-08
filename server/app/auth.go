@@ -1,6 +1,9 @@
 package app
 
 import (
+	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/mattermost/focalboard/server/model"
 	"github.com/mattermost/focalboard/server/services/auth"
 	"github.com/mattermost/focalboard/server/utils"
@@ -178,15 +181,28 @@ func (a *App) RegisterUser(username, email, password string) error {
 		return errors.Wrap(err, "Invalid password")
 	}
 
-	_, err = a.store.CreateUser(&model.User{
-		ID:          utils.NewID(utils.IDTypeUser),
-		Username:    username,
-		Email:       email,
-		Password:    auth.HashPassword(password),
-		MfaSecret:   "",
-		AuthService: a.config.AuthMode,
-		AuthData:    "",
-	})
+	role, err := a.store.GetRoleByName("volunteer")
+	if err != nil {
+		return errors.Wrap(err, "Role not found")
+	}
+
+	userID, err := a.thirdParty.RegisterUser(username, email, password)
+	if err != nil {
+		return errors.Wrap(err, "Unable to create the new matrix user")
+	}
+
+	userModel := model.User{
+		ID:           utils.NewID(utils.IDTypeUser),
+		Username:     username,
+		Email:        email,
+		Password:     auth.HashPassword(password),
+		MfaSecret:    "",
+		AuthService:  a.config.AuthMode,
+		AuthData:     "",
+		RoleID:       role.ID,
+		MatrixUserID: userID,
+	}
+	_, err = a.store.CreateUser(&userModel)
 	if err != nil {
 		return errors.Wrap(err, "Unable to create the new user")
 	}
@@ -228,4 +244,29 @@ func (a *App) ChangePassword(userID, oldPassword, newPassword string) error {
 	}
 
 	return nil
+}
+
+func (a *App) EncodeJWTToken(claims jwt.MapClaims) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(a.config.JWTSecretKey))
+	if err != nil {
+		return "", errors.Wrap(err, "Unable to generate the JWT token")
+	}
+	return tokenString, nil
+}
+
+func (a *App) DecodeJWTToken(tokenString string) (jwt.MapClaims, error) {
+	claims := jwt.MapClaims{}
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(a.config.JWTSecretKey), nil
+	})
+	if err != nil || !token.Valid {
+		return nil, errors.Wrap(err, "Invalid token")
+	}
+
+	if exp, ok := claims["exp"].(float64); ok && int64(exp) < time.Now().Unix() {
+		return nil, errors.New("token expired")
+	}
+
+	return claims, nil
 }

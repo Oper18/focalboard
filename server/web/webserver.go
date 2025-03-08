@@ -21,6 +21,7 @@ import (
 // AddRoutes).
 type RoutedService interface {
 	RegisterRoutes(*mux.Router)
+	RegisterPublicAPIRoutes(*mux.Router)
 }
 
 // Server is the structure responsible for managing our http web server.
@@ -82,6 +83,7 @@ func (ws *Server) Router() *mux.Router {
 // AddRoutes allows services to register themself in the webserver router and provide new endpoints.
 func (ws *Server) AddRoutes(rs RoutedService) {
 	rs.RegisterRoutes(ws.Router())
+	rs.RegisterPublicAPIRoutes(ws.Router())
 }
 
 func (ws *Server) registerRoutes() {

@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/focalboard/server/services/notify"
 	"github.com/mattermost/focalboard/server/services/permissions"
 	"github.com/mattermost/focalboard/server/services/store"
+	"github.com/mattermost/focalboard/server/services/thirdparty"
 	"github.com/mattermost/focalboard/server/services/webhook"
 	"github.com/mattermost/focalboard/server/utils"
 	"github.com/mattermost/focalboard/server/ws"
@@ -52,6 +53,7 @@ type Services struct {
 	Permissions      permissions.PermissionsService
 	SkipTemplateInit bool
 	ServicesAPI      servicesAPI
+	ThirdParty       thirdparty.ThirdParty
 }
 
 type App struct {
@@ -70,6 +72,7 @@ type App struct {
 
 	cardLimitMux sync.RWMutex
 	cardLimit    int
+	thirdParty   thirdparty.ThirdParty
 }
 
 func (a *App) SetConfig(config *config.Configuration) {
@@ -94,6 +97,7 @@ func New(config *config.Configuration, wsAdapter ws.Adapter, services Services) 
 		permissions:         services.Permissions,
 		blockChangeNotifier: utils.NewCallbackQueue("blockChangeNotifier", blockChangeNotifierQueueSize, blockChangeNotifierPoolSize, services.Logger),
 		servicesAPI:         services.ServicesAPI,
+		thirdParty:          services.ThirdParty,
 	}
 	app.initialize(services.SkipTemplateInit)
 	return app

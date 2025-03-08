@@ -5,7 +5,7 @@
 	"description": "",
 	"scripts": {
 		"pack": "cross-env NODE_ENV=production webpack --config webpack.prod.js",
-		"packdev": "cross-env NODE_ENV=dev webpack --config webpack.dev.js",
+		"packdev": "cross-env NODE_ENV=dev webpack --config webpack.dev.js  --progress",
 		"watchdev": "cross-env NODE_ENV=dev webpack --watch --progress --config webpack.dev.js",
 		"deveditor": "cross-env NODE_ENV=dev webpack server --config webpack.editor.js",
 		"test": "jest",

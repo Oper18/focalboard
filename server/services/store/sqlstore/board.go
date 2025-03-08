@@ -629,6 +629,60 @@ func (s *SQLStore) getMembersForUser(db sq.BaseRunner, userID string) ([]*model.
 	return members, nil
 }
 
+func (s *SQLStore) getMembersForBlock(db sq.BaseRunner, blockID string) ([]*model.BoardMember, error) {
+	query := s.getQueryBuilder(db).
+		Select(
+			fmt.Sprintf("COALESCE(%sboards.minimum_role, '')", s.tablePrefix),
+			fmt.Sprintf("%sboard_members.board_id", s.tablePrefix),
+			fmt.Sprintf("%sboard_members.user_id", s.tablePrefix),
+			fmt.Sprintf("%sboard_members.roles", s.tablePrefix),
+			fmt.Sprintf("%sboard_members.scheme_admin", s.tablePrefix),
+			fmt.Sprintf("%sboard_members.scheme_editor", s.tablePrefix),
+			fmt.Sprintf("%sboard_members.scheme_commenter", s.tablePrefix),
+			fmt.Sprintf("%sboard_members.scheme_viewer", s.tablePrefix),
+		).
+		From(s.tablePrefix + "board_members").
+		Join(fmt.Sprintf("%sboards ON %sboards.id=%sboard_members.board_id", s.tablePrefix, s.tablePrefix, s.tablePrefix)).
+		Join(fmt.Sprintf("%sblocks ON %sblocks.board_id = %sboards.id", s.tablePrefix, s.tablePrefix, s.tablePrefix)).
+		Join(fmt.Sprintf("%susers ON %susers.id = %sboard_members.user_id", s.tablePrefix, s.tablePrefix, s.tablePrefix)).
+		Join(fmt.Sprintf("%sroles ON %sroles.id = %susers.role_id", s.tablePrefix, s.tablePrefix, s.tablePrefix)).
+		Join(fmt.Sprintf("%srole_permissions ON %srole_permissions.role_id = %sroles.id", s.tablePrefix, s.tablePrefix, s.tablePrefix)).
+		Join(fmt.Sprintf("%spermissions ON %spermissions.id = %srole_permissions.permission_id", s.tablePrefix, s.tablePrefix, s.tablePrefix)).
+		Where(
+			sq.And{
+				sq.Eq{"blocks.id": blockID},
+				sq.Or{
+					sq.And{
+						sq.Expr(
+							fmt.Sprintf(
+								`
+									EXISTS (
+											SELECT 1
+											FROM json_each_text(fields -> 'properties') AS fields(key, value)
+											WHERE value = %susers.id
+									)
+								`,
+								s.tablePrefix,
+							),
+						),
+						sq.Eq{fmt.Sprintf("%sblocks.type", s.tablePrefix): "card"},
+						sq.NotEq{fmt.Sprintf("%spermissions.name", s.tablePrefix): model.PermissionManageBoardCards.Id},
+					},
+					sq.Eq{fmt.Sprintf("%spermissions.name", s.tablePrefix): model.PermissionManageBoardCards.Id},
+				},
+			},
+		)
+
+	rows, err := query.Query()
+	if err != nil {
+		s.logger.Error(`getMembersForBoard ERROR`, mlog.Err(err))
+		return nil, err
+	}
+	defer s.CloseRows(rows)
+
+	return s.boardMembersFromRows(rows)
+}
+
 func (s *SQLStore) getMembersForBoard(db sq.BaseRunner, boardID string) ([]*model.BoardMember, error) {
 	query := s.getQueryBuilder(db).
 		Select(boardMemberFields...).

@@ -16,7 +16,7 @@ var (
 	newline = []byte{'\n'}
 )
 
-func (a *App) ExportArchive(w io.Writer, opt model.ExportArchiveOptions) (errs error) {
+func (a *App) ExportArchive(w io.Writer, opt model.ExportArchiveOptions, userID string) (errs error) {
 	boards, err := a.getBoardsForArchive(opt.BoardIDs)
 	if err != nil {
 		return err
@@ -39,7 +39,7 @@ func (a *App) ExportArchive(w io.Writer, opt model.ExportArchiveOptions) (errs e
 	}
 
 	for _, board := range boards {
-		if err := a.writeArchiveBoard(zw, board, opt); err != nil {
+		if err := a.writeArchiveBoard(zw, board, opt, userID); err != nil {
 			merr.Append(fmt.Errorf("cannot export board %s: %w", board.ID, err))
 			return
 		}
@@ -67,7 +67,7 @@ func (a *App) writeArchiveVersion(zw *zip.Writer) error {
 }
 
 // writeArchiveBoard writes a single board to the archive in a zip directory.
-func (a *App) writeArchiveBoard(zw *zip.Writer, board model.Board, opt model.ExportArchiveOptions) error {
+func (a *App) writeArchiveBoard(zw *zip.Writer, board model.Board, opt model.ExportArchiveOptions, userID string) error {
 	// create a directory per board
 	w, err := zw.Create(board.ID + "/board.jsonl")
 	if err != nil {
@@ -82,7 +82,7 @@ func (a *App) writeArchiveBoard(zw *zip.Writer, board model.Board, opt model.Exp
 	var files []string
 	// write the board's blocks
 	// TODO: paginate this
-	blocks, err := a.GetBlocksForBoard(board.ID)
+	blocks, err := a.GetBlocksForBoard(board.ID, userID)
 	if err != nil {
 		return err
 	}

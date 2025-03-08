@@ -127,6 +127,10 @@ const BoardTemplateSelector = (props: Props) => {
         return <div/>
     }
 
+    if (!me?.permissions?.includes('manage_board_properties')) {
+        return <div/>
+    }
+
     return (
         <div className={`BoardTemplateSelector__container ${onClose ? '' : 'BoardTemplateSelector__container--page'}`}>
             {onClose &&

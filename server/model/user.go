@@ -69,7 +69,11 @@ type User struct {
 	// Special Permissions the user may have
 	Permissions []string `json:"permissions,omitempty"`
 
-	Roles string `json:"roles"`
+	Roles        string `json:"roles"`
+	RoleID       string `json:"role_id"`
+	RoleName     string `json:"role_name"`
+	MatrixUserID string `json:"matrix_user_id"`
+	VolunteerID  string `json:"volunteer_id"`
 }
 
 // UserPreferencesPatch is a user property patch

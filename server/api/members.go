@@ -150,7 +150,7 @@ func (a *API) handleAddMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !a.permissions.HasPermissionToTeam(reqBoardMember.UserID, board.TeamID, model.PermissionViewTeam) {
+	if !a.permissions.HasPermissionToTeam(reqBoardMember.UserID, board.TeamID, model.PermissionViewBoard) {
 		a.errorResponse(w, r, model.NewErrPermission("access denied to team"))
 		return
 	}

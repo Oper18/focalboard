@@ -211,6 +211,7 @@ type QueryBlocksOptions struct {
 	BlockType BlockType // if not empty and not `TypeUnknown` then filter for records of specified block type
 	Page      int       // page number to select when paginating
 	PerPage   int       // number of blocks per page (default=-1, meaning unlimited)
+	UserID    string    // if not empty then filter blocks attached to specified user
 }
 
 // QuerySubtreeOptions are query options that can be passed to GetSubTree methods.

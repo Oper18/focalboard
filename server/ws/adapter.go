@@ -27,6 +27,7 @@ const (
 type Store interface {
 	GetBlock(blockID string) (*model.Block, error)
 	GetMembersForBoard(boardID string) ([]*model.BoardMember, error)
+	GetMembersForBlock(blockID string) ([]*model.BoardMember, error)
 }
 
 type Adapter interface {

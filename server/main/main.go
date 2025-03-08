@@ -13,9 +13,9 @@ import (
 	"github.com/mattermost/focalboard/server/model"
 	"github.com/mattermost/focalboard/server/server"
 	"github.com/mattermost/focalboard/server/services/config"
-	"github.com/mattermost/focalboard/server/services/permissions/localpermissions"
 )
 import (
+	"github.com/mattermost/focalboard/server/services/permissions/sqlpermissions"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
@@ -136,7 +136,8 @@ func main() {
 		logger.Fatal("server.NewStore ERROR", mlog.Err(err))
 	}
 
-	permissionsService := localpermissions.New(db, logger)
+	// permissionsService := localpermissions.New(db, logger)
+	permissionsService := sqlpermissions.New(db, logger)
 
 	params := server.Params{
 		Cfg:                config,
@@ -230,7 +231,8 @@ func startServer(webPath string, filesPath string, port int, singleUserToken, db
 		logger.Fatal("server.NewStore ERROR", mlog.Err(err))
 	}
 
-	permissionsService := localpermissions.New(db, logger)
+	// permissionsService := localpermissions.New(db, logger)
+	permissionsService := sqlpermissions.New(db, logger)
 
 	params := server.Params{
 		Cfg:                config,

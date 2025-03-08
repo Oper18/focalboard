@@ -13,7 +13,7 @@ func (a *App) MoveContentBlock(block *model.Block, dstBlock *model.Block, where 
 		return model.NewErrBadRequest(message)
 	}
 
-	card, err := a.GetBlockByID(block.ParentID)
+	card, err := a.GetBlockByID(block.ParentID, userID)
 	if err != nil {
 		return err
 	}

@@ -12,20 +12,29 @@ import (
 
 var ErrBlocksFromMultipleBoards = errors.New("the block set contain blocks from multiple boards")
 
-func (a *App) GetBlocks(boardID, parentID string, blockType string) ([]*model.Block, error) {
+func (a *App) GetBlocks(boardID, parentID string, blockType string, userID string) ([]*model.Block, error) {
 	if boardID == "" {
 		return []*model.Block{}, nil
 	}
 
 	if blockType != "" && parentID != "" {
-		return a.store.GetBlocksWithParentAndType(boardID, parentID, blockType)
+		if a.permissions.HasPermissionTo(userID, model.PermissionManageBoardCards) {
+			return a.store.GetBlocksWithParentAndType(boardID, parentID, blockType)
+		}
+		return a.store.GetBlocksWithParentAndTypeAcceptForUser(boardID, parentID, blockType, userID)
 	}
 
 	if blockType != "" {
-		return a.store.GetBlocksWithType(boardID, blockType)
+		if a.permissions.HasPermissionTo(userID, model.PermissionManageBoardCards) {
+			return a.store.GetBlocksWithType(boardID, blockType)
+		}
+		return a.store.GetBlocksWithTypeAcceptForUser(boardID, blockType, userID)
 	}
 
-	return a.store.GetBlocksWithParent(boardID, parentID)
+	if a.permissions.HasPermissionTo(userID, model.PermissionManageBoardCards) {
+		return a.store.GetBlocksWithParent(boardID, parentID)
+	}
+	return a.store.GetBlocksWithParentAcceptForUser(boardID, parentID, userID)
 }
 
 func (a *App) DuplicateBlock(boardID string, blockID string, userID string, asTemplate bool) ([]*model.Block, error) {
@@ -204,8 +213,11 @@ func (a *App) InsertBlocksAndNotify(blocks []*model.Block, modifiedByID string, 
 	return blocks, nil
 }
 
-func (a *App) GetBlockByID(blockID string) (*model.Block, error) {
-	return a.store.GetBlock(blockID)
+func (a *App) GetBlockByID(blockID string, userID string) (*model.Block, error) {
+	if a.permissions.HasPermissionTo(userID, model.PermissionManageBoardCards) {
+		return a.store.GetBlock(blockID)
+	}
+	return a.store.GetBlockAcceptForUser(blockID, userID)
 }
 
 func (a *App) DeleteBlock(blockID string, modifiedBy string) error {
@@ -302,8 +314,11 @@ func (a *App) GetBlockCountsByType() (map[string]int64, error) {
 	return a.store.GetBlockCountsByType()
 }
 
-func (a *App) GetBlocksForBoard(boardID string) ([]*model.Block, error) {
-	return a.store.GetBlocksForBoard(boardID)
+func (a *App) GetBlocksForBoard(boardID string, userID string) ([]*model.Block, error) {
+	if a.permissions.HasPermissionTo(userID, model.PermissionManageBoardCards) {
+		return a.store.GetBlocksForBoard(boardID)
+	}
+	return a.store.GetBlocksForBoardAcceptForUser(boardID, userID)
 }
 
 func (a *App) notifyBlockChanged(action notify.Action, block *model.Block, oldBlock *model.Block, modifiedByID string) {

@@ -224,7 +224,7 @@ func (a *API) handleGetTeamUsers(w http.ResponseWriter, r *http.Request) {
 	searchQuery := query.Get("search")
 	excludeBots := r.URL.Query().Get("exclude_bots") == True
 
-	if !a.permissions.HasPermissionToTeam(userID, teamID, model.PermissionViewTeam) {
+	if !a.permissions.HasPermissionToTeam(userID, teamID, model.PermissionViewMembers) {
 		a.errorResponse(w, r, model.NewErrPermission("access denied to team"))
 		return
 	}

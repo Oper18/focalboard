@@ -125,13 +125,13 @@ func (a *API) handleGetBlocks(w http.ResponseWriter, r *http.Request) {
 	var block *model.Block
 	switch {
 	case all != "":
-		blocks, err = a.app.GetBlocksForBoard(boardID)
+		blocks, err = a.app.GetBlocksForBoard(boardID, userID)
 		if err != nil {
 			a.errorResponse(w, r, err)
 			return
 		}
 	case blockID != "":
-		block, err = a.app.GetBlockByID(blockID)
+		block, err = a.app.GetBlockByID(blockID, userID)
 		if err != nil {
 			a.errorResponse(w, r, err)
 			return
@@ -144,7 +144,7 @@ func (a *API) handleGetBlocks(w http.ResponseWriter, r *http.Request) {
 
 		blocks = append(blocks, block)
 	default:
-		blocks, err = a.app.GetBlocks(boardID, parentID, blockType)
+		blocks, err = a.app.GetBlocks(boardID, parentID, blockType, userID)
 		if err != nil {
 			a.errorResponse(w, r, err)
 			return
@@ -374,7 +374,7 @@ func (a *API) handleDeleteBlock(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	block, err := a.app.GetBlockByID(blockID)
+	block, err := a.app.GetBlockByID(blockID, userID)
 	if err != nil {
 		a.errorResponse(w, r, err)
 		return
@@ -543,7 +543,7 @@ func (a *API) handlePatchBlock(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	block, err := a.app.GetBlockByID(blockID)
+	block, err := a.app.GetBlockByID(blockID, userID)
 	if err != nil {
 		a.errorResponse(w, r, err)
 		return
@@ -649,7 +649,7 @@ func (a *API) handlePatchBlocks(w http.ResponseWriter, r *http.Request) {
 
 	for _, blockID := range patches.BlockIDs {
 		var block *model.Block
-		block, err = a.app.GetBlockByID(blockID)
+		block, err = a.app.GetBlockByID(blockID, userID)
 		if err != nil {
 			a.errorResponse(w, r, model.NewErrForbidden("access denied to make board changes"))
 			return
@@ -724,7 +724,7 @@ func (a *API) handleDuplicateBlock(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	block, err := a.app.GetBlockByID(blockID)
+	block, err := a.app.GetBlockByID(blockID, userID)
 	if err != nil {
 		a.errorResponse(w, r, err)
 		return

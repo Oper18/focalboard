@@ -49,6 +49,8 @@ func (a *API) handleCreateSubscription(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
+	userID := getUserID(r)
+
 	requestBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -82,14 +84,14 @@ func (a *API) handleCreateSubscription(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// check for valid block
-	_, bErr := a.app.GetBlockByID(sub.BlockID)
+	_, bErr := a.app.GetBlockByID(sub.BlockID, userID)
 	if bErr != nil {
 		message := fmt.Sprintf("invalid blockID: %s", bErr)
 		a.errorResponse(w, r, model.NewErrBadRequest(message))
 		return
 	}
 
-	subNew, err := a.app.CreateSubscription(&sub)
+	subNew, err := a.app.CreateSubscription(&sub, userID)
 	if err != nil {
 		a.errorResponse(w, r, err)
 		return
@@ -139,6 +141,8 @@ func (a *API) handleDeleteSubscription(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
+	userID := getUserID(r)
+
 	ctx := r.Context()
 	session := ctx.Value(sessionContextKey).(*model.Session)
 
@@ -157,7 +161,7 @@ func (a *API) handleDeleteSubscription(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := a.app.DeleteSubscription(blockID, subscriberID); err != nil {
+	if _, err := a.app.DeleteSubscription(blockID, subscriberID, userID); err != nil {
 		a.errorResponse(w, r, err)
 		return
 	}

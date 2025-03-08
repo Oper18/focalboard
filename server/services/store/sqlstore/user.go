@@ -2,6 +2,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -60,20 +61,30 @@ func (s *SQLStore) getUserByCondition(db sq.BaseRunner, condition sq.Eq) (*model
 func (s *SQLStore) getUsersByCondition(db sq.BaseRunner, condition interface{}, limit uint64) ([]*model.User, error) {
 	query := s.getQueryBuilder(db).
 		Select(
-			"id",
-			"username",
-			"email",
-			"password",
-			"mfa_secret",
-			"auth_service",
-			"auth_data",
-			"create_at",
-			"update_at",
-			"delete_at",
+			fmt.Sprintf("%susers.id", s.tablePrefix),
+			fmt.Sprintf("%susers.username", s.tablePrefix),
+			fmt.Sprintf("%susers.email", s.tablePrefix),
+			fmt.Sprintf("%susers.password", s.tablePrefix),
+			fmt.Sprintf("%susers.mfa_secret", s.tablePrefix),
+			fmt.Sprintf("%susers.auth_service", s.tablePrefix),
+			fmt.Sprintf("%susers.auth_data", s.tablePrefix),
+			fmt.Sprintf("%susers.create_at", s.tablePrefix),
+			fmt.Sprintf("%susers.update_at", s.tablePrefix),
+			fmt.Sprintf("%susers.delete_at", s.tablePrefix),
+			fmt.Sprintf("%susers.role_id", s.tablePrefix),
+			fmt.Sprintf("%sroles.name AS role_name", s.tablePrefix),
+			fmt.Sprintf("json_agg(%spermissions.name) as permissions", s.tablePrefix),
 		).
-		From(s.tablePrefix + "users").
+		From(s.tablePrefix+"users").
+		Join(fmt.Sprintf("%sroles ON %sroles.id = %susers.role_id", s.tablePrefix, s.tablePrefix, s.tablePrefix)).
+		Join(fmt.Sprintf("%srole_permissions ON %srole_permissions.role_id = %sroles.id", s.tablePrefix, s.tablePrefix, s.tablePrefix)).
+		Join(fmt.Sprintf("%spermissions ON %spermissions.id = %srole_permissions.permission_id", s.tablePrefix, s.tablePrefix, s.tablePrefix)).
 		Where(sq.Eq{"delete_at": 0}).
-		Where(condition)
+		Where(condition).
+		GroupBy(
+			fmt.Sprintf("%susers.id", s.tablePrefix),
+			fmt.Sprintf("%sroles.name", s.tablePrefix),
+		)
 
 	if limit != 0 {
 		query = query.Limit(limit)
@@ -99,11 +110,11 @@ func (s *SQLStore) getUsersByCondition(db sq.BaseRunner, condition interface{}, 
 }
 
 func (s *SQLStore) getUserByID(db sq.BaseRunner, userID string) (*model.User, error) {
-	return s.getUserByCondition(db, sq.Eq{"id": userID})
+	return s.getUserByCondition(db, sq.Eq{fmt.Sprintf("%susers.id", s.tablePrefix): userID})
 }
 
 func (s *SQLStore) getUsersList(db sq.BaseRunner, userIDs []string, _, _ bool) ([]*model.User, error) {
-	users, err := s.getUsersByCondition(db, sq.Eq{"id": userIDs}, 0)
+	users, err := s.getUsersByCondition(db, sq.Eq{fmt.Sprintf("%susers.id", s.tablePrefix): userIDs}, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -116,11 +127,11 @@ func (s *SQLStore) getUsersList(db sq.BaseRunner, userIDs []string, _, _ bool) (
 }
 
 func (s *SQLStore) getUserByEmail(db sq.BaseRunner, email string) (*model.User, error) {
-	return s.getUserByCondition(db, sq.Eq{"email": email})
+	return s.getUserByCondition(db, sq.Eq{fmt.Sprintf("%susers.email", s.tablePrefix): email})
 }
 
 func (s *SQLStore) getUserByUsername(db sq.BaseRunner, username string) (*model.User, error) {
-	return s.getUserByCondition(db, sq.Eq{"username": username})
+	return s.getUserByCondition(db, sq.Eq{fmt.Sprintf("%susers.username", s.tablePrefix): username})
 }
 
 func (s *SQLStore) createUser(db sq.BaseRunner, user *model.User) (*model.User, error) {
@@ -130,8 +141,8 @@ func (s *SQLStore) createUser(db sq.BaseRunner, user *model.User) (*model.User, 
 	user.DeleteAt = 0
 
 	query := s.getQueryBuilder(db).Insert(s.tablePrefix+"users").
-		Columns("id", "username", "email", "password", "mfa_secret", "auth_service", "auth_data", "create_at", "update_at", "delete_at").
-		Values(user.ID, user.Username, user.Email, user.Password, user.MfaSecret, user.AuthService, user.AuthData, user.CreateAt, user.UpdateAt, user.DeleteAt)
+		Columns("id", "username", "email", "password", "mfa_secret", "auth_service", "auth_data", "create_at", "update_at", "delete_at", "role_id").
+		Values(user.ID, user.Username, user.Email, user.Password, user.MfaSecret, user.AuthService, user.AuthData, user.CreateAt, user.UpdateAt, user.DeleteAt, user.RoleID)
 
 	_, err := query.Exec()
 	return user, err
@@ -224,7 +235,7 @@ func (s *SQLStore) getUsersByTeam(db sq.BaseRunner, _ string, _ string, _, _ boo
 }
 
 func (s *SQLStore) searchUsersByTeam(db sq.BaseRunner, _ string, searchQuery string, _ string, _, _, _ bool) ([]*model.User, error) {
-	users, err := s.getUsersByCondition(db, &sq.Like{"username": "%" + searchQuery + "%"}, 10)
+	users, err := s.getUsersByCondition(db, &sq.Like{fmt.Sprintf("%susers.username", s.tablePrefix): "%" + searchQuery + "%"}, 10)
 	if model.IsErrNotFound(err) {
 		return []*model.User{}, nil
 	}
@@ -237,6 +248,7 @@ func (s *SQLStore) usersFromRows(rows *sql.Rows) ([]*model.User, error) {
 
 	for rows.Next() {
 		var user model.User
+		var permissions []byte
 
 		err := rows.Scan(
 			&user.ID,
@@ -249,7 +261,14 @@ func (s *SQLStore) usersFromRows(rows *sql.Rows) ([]*model.User, error) {
 			&user.CreateAt,
 			&user.UpdateAt,
 			&user.DeleteAt,
+			&user.RoleID,
+			&user.RoleName,
+			&permissions,
 		)
+		if err != nil {
+			return nil, err
+		}
+		err = json.Unmarshal(permissions, &user.Permissions)
 		if err != nil {
 			return nil, err
 		}
@@ -416,4 +435,55 @@ func (s *SQLStore) preferencesFromRows(rows *sql.Rows) ([]mmModel.Preference, er
 	}
 
 	return preferences, nil
+}
+
+func (s *SQLStore) getUserWithPermission(db sq.BaseRunner, userID string, permissionID string) (*model.User, error) {
+	query := s.getQueryBuilder(db).
+		Select(
+			fmt.Sprintf("%susers.id", s.tablePrefix),
+			fmt.Sprintf("%susers.username", s.tablePrefix),
+			fmt.Sprintf("%susers.email", s.tablePrefix),
+			fmt.Sprintf("%susers.password", s.tablePrefix),
+			fmt.Sprintf("%susers.mfa_secret", s.tablePrefix),
+			fmt.Sprintf("%susers.auth_service", s.tablePrefix),
+			fmt.Sprintf("%susers.auth_data", s.tablePrefix),
+			fmt.Sprintf("%susers.create_at", s.tablePrefix),
+			fmt.Sprintf("%susers.update_at", s.tablePrefix),
+			fmt.Sprintf("%susers.delete_at", s.tablePrefix),
+			fmt.Sprintf("%susers.role_id", s.tablePrefix),
+			fmt.Sprintf("%sroles.name AS role_name", s.tablePrefix),
+			fmt.Sprintf("json_agg(%spermissions.name) as permissions", s.tablePrefix),
+		).
+		From(s.tablePrefix+"users").
+		Join(fmt.Sprintf("%sroles ON %sroles.id = %susers.role_id", s.tablePrefix, s.tablePrefix, s.tablePrefix)).
+		Join(fmt.Sprintf("%srole_permissions ON %srole_permissions.role_id = %sroles.id", s.tablePrefix, s.tablePrefix, s.tablePrefix)).
+		Join(fmt.Sprintf("%spermissions ON %spermissions.id = %srole_permissions.permission_id", s.tablePrefix, s.tablePrefix, s.tablePrefix)).
+		Where(
+			sq.And{
+				sq.Eq{fmt.Sprintf("%susers.id", s.tablePrefix): userID},
+				sq.Eq{fmt.Sprintf("%spermissions.name", s.tablePrefix): permissionID},
+			},
+		).
+		GroupBy(
+			fmt.Sprintf("%susers.id", s.tablePrefix),
+			fmt.Sprintf("%sroles.name", s.tablePrefix),
+		)
+
+	rows, err := query.Query()
+	if err != nil {
+		s.logger.Error(`GetUserWithPermission ERROR`, mlog.Err(err))
+		return nil, err
+	}
+	defer s.CloseRows(rows)
+
+	users, err := s.usersFromRows(rows)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(users) == 0 {
+		return nil, model.NewErrNotFound(fmt.Sprintf("User ID=%s, Permission ID=%s", userID, permissionID))
+	}
+
+	return users[0], nil
 }

@@ -255,7 +255,7 @@ func (a *API) handlePatchBoardsAndBlocks(w http.ResponseWriter, r *http.Request)
 	}
 
 	for _, blockID := range pbab.BlockIDs {
-		block, err2 := a.app.GetBlockByID(blockID)
+		block, err2 := a.app.GetBlockByID(blockID, userID)
 		if err2 != nil {
 			a.errorResponse(w, r, err2)
 			return
@@ -367,7 +367,7 @@ func (a *API) handleDeleteBoardsAndBlocks(w http.ResponseWriter, r *http.Request
 	}
 
 	for _, blockID := range dbab.Blocks {
-		block, err2 := a.app.GetBlockByID(blockID)
+		block, err2 := a.app.GetBlockByID(blockID, userID)
 		if err2 != nil {
 			a.errorResponse(w, r, err2)
 			return

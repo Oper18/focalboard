@@ -22,4 +22,11 @@ var (
 	PermissionManageBoardProperties = &mmModel.Permission{Id: "manage_board_properties", Name: "", Description: "", Scope: ""}
 	PermissionCommentBoardCards     = &mmModel.Permission{Id: "comment_board_cards", Name: "", Description: "", Scope: ""}
 	PermissionDeleteOthersComments  = &mmModel.Permission{Id: "delete_others_comments", Name: "", Description: "", Scope: ""}
+	PermissionManageMembers         = &mmModel.Permission{Id: "manage_members", Name: "", Description: "", Scope: ""}
 )
+
+type PermissionModel struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
