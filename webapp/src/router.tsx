@@ -16,6 +16,8 @@ import ChangePasswordPage from './pages/changePasswordPage'
 import ErrorPage from './pages/errorPage'
 import LoginPage from './pages/loginPage'
 import RegisterPage from './pages/registerPage'
+import VolunteersPage from './pages/volunteersPage'
+import UsersPage from './pages/usersPage'
 import {Utils} from './utils'
 import octoClient from './octoClient'
 import {setGlobalError, getGlobalError} from './store/globalError'
@@ -80,19 +82,30 @@ const FocalboardRouter = (props: Props): JSX.Element => {
         <Router history={browserHistory}>
             <GlobalErrorRedirect/>
             <Switch>
-                <FBRoute path='/error'>
-                    <ErrorPage/>
-                </FBRoute>
-
-                <FBRoute path='/login'>
-                    <LoginPage/>
-                </FBRoute>
-                <FBRoute path='/register'>
-                    <RegisterPage/>
-                </FBRoute>
-                <FBRoute path='/change_password'>
-                    <ChangePasswordPage/>
-                </FBRoute>
+                <FBRoute
+                    path='/error'
+                    component={ErrorPage}
+                />
+                <FBRoute
+                    path='/login'
+                    component={LoginPage}
+                />
+                <FBRoute
+                    path='/register'
+                    component={RegisterPage}
+                />
+                <FBRoute
+                    path='/change_password'
+                    component={ChangePasswordPage}
+                />
+                <FBRoute
+                    path='/volunteers'
+                    component={VolunteersPage}
+                />
+                <FBRoute
+                    path='/users'
+                    component={UsersPage}
+                />
 
                 <FBRoute path={['/team/:teamId/new/:channelId']}>
                     <BoardPage new={true}/>

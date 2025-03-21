@@ -50,6 +50,7 @@ import {Board} from '../../blocks/board'
 import SidebarCategory from './sidebarCategory'
 import SidebarSettingsMenu from './sidebarSettingsMenu'
 import SidebarUserMenu from './sidebarUserMenu'
+import SidebarAdditionalMenu from './sidebarAdditionalMenu'
 
 type Props = {
     activeBoardId?: string
@@ -404,6 +405,8 @@ const Sidebar = (props: Props) => {
                     )}
                 </Droppable>
             </DragDropContext>
+
+            <SidebarAdditionalMenu/>
 
             <div className='octo-spacer'/>
 
