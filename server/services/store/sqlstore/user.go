@@ -141,8 +141,8 @@ func (s *SQLStore) createUser(db sq.BaseRunner, user *model.User) (*model.User, 
 	user.DeleteAt = 0
 
 	query := s.getQueryBuilder(db).Insert(s.tablePrefix+"users").
-		Columns("id", "username", "email", "password", "mfa_secret", "auth_service", "auth_data", "create_at", "update_at", "delete_at", "role_id").
-		Values(user.ID, user.Username, user.Email, user.Password, user.MfaSecret, user.AuthService, user.AuthData, user.CreateAt, user.UpdateAt, user.DeleteAt, user.RoleID)
+		Columns("id", "username", "email", "password", "mfa_secret", "auth_service", "auth_data", "create_at", "update_at", "delete_at", "role_id", "matrix_user_id").
+		Values(user.ID, user.Username, user.Email, user.Password, user.MfaSecret, user.AuthService, user.AuthData, user.CreateAt, user.UpdateAt, user.DeleteAt, user.RoleID, user.MatrixUserID)
 
 	_, err := query.Exec()
 	return user, err

@@ -52,7 +52,12 @@ func (ms *MatrixSynapse) getNonce() (*NonceResponse, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		ms.Logger.Error("MatrixSynapse, getNonce received non-OK HTTP status", mlog.Int("status", resp.StatusCode))
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			ms.Logger.Error("MatrixSynapse, getNonce failed to read response body", mlog.Err(err))
+			return nil, err
+		}
+		ms.Logger.Error("MatrixSynapse, getNonce received non-OK HTTP status", mlog.Int("status", resp.StatusCode), mlog.String("body", string(bodyBytes)))
 		return nil, fmt.Errorf("received non-OK HTTP status: %s", resp.Status)
 	}
 
@@ -101,7 +106,7 @@ func (ms *MatrixSynapse) createUser(requestBody RegisterRequest) (userID string,
 	}
 
 	var registerResponse RegisterResponse
-	err = json.NewDecoder(resp.Body).Decode(&registerResponse)
+	err = json.Unmarshal(bodyBytes, &registerResponse)
 	if err != nil {
 		ms.Logger.Error("MatrixSynapse, createUser decode response body failed", mlog.Err(err))
 		return userID, err
@@ -142,33 +147,35 @@ func (ms *MatrixSynapse) generateHMAC(nonce, username, password string, admin bo
 }
 
 func (ms *MatrixSynapse) RegisterUser(username string, displayname string, password string) (userID string, err error) {
-	return "", nil
-	// nonce, err := ms.getNonce()
-	// if err != nil {
-	//   ms.Logger.Error("MatrixSynapse, RegisterUser get nonce failed", mlog.Err(err))
-	//   return userID, err
-	// }
-	//
-	// mac, err := ms.generateHMAC(nonce.Nonce, username, password, false, ms.Config.MatrixSynapseSecret)
-	// if err != nil {
-	//   ms.Logger.Error("MatrixSynapse, RegisterUser generate HMAC failed", mlog.Err(err))
-	//   return userID, err
-	// }
-	//
-	// registerRequest := RegisterRequest{
-	//   Nonce:       nonce.Nonce,
-	//   Username:    username,
-	//   Displayname: displayname,
-	//   Password:    password,
-	//   Admin:       false,
-	//   Mac:         mac,
-	// }
-	//
-	// userID, err = ms.createUser(registerRequest)
-	// if err != nil {
-	//   ms.Logger.Error("MatrixSynapse, RegisterUser create user failed", mlog.Err(err))
-	//   return userID, err
-	// }
-	//
-	// return userID, nil
+	if ms.Config.MatrixSynapseSecret == "" {
+		return "", nil
+	}
+	nonce, err := ms.getNonce()
+	if err != nil {
+		ms.Logger.Error("MatrixSynapse, RegisterUser get nonce failed", mlog.Err(err))
+		return userID, err
+	}
+
+	mac, err := ms.generateHMAC(nonce.Nonce, username, password, false, ms.Config.MatrixSynapseSecret)
+	if err != nil {
+		ms.Logger.Error("MatrixSynapse, RegisterUser generate HMAC failed", mlog.Err(err))
+		return userID, err
+	}
+
+	registerRequest := RegisterRequest{
+		Nonce:       nonce.Nonce,
+		Username:    username,
+		Displayname: displayname,
+		Password:    password,
+		Admin:       false,
+		Mac:         mac,
+	}
+
+	userID, err = ms.createUser(registerRequest)
+	if err != nil {
+		ms.Logger.Error("MatrixSynapse, RegisterUser create user failed", mlog.Err(err))
+		return userID, err
+	}
+
+	return userID, nil
 }
