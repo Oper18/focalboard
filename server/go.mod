@@ -6,7 +6,10 @@ toolchain go1.21.8
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
+	github.com/abadojack/whatlanggo v1.0.1
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/golang/mock v1.6.0
+	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/websocket v1.5.1
 	github.com/krolaw/zipstream v0.0.0-20180621105154-0a2661891f94
@@ -17,6 +20,7 @@ require (
 	github.com/mattermost/morph v1.1.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/mgdelacroix/foundation v0.0.0-20230510073833-0660207768ef
+	github.com/mozillazg/go-slugify v0.2.0
 	github.com/oklog/run v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.19.1
@@ -31,7 +35,6 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/abadojack/whatlanggo v1.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -44,9 +47,7 @@ require (
 	github.com/go-asn1-ber/asn1-ber v1.5.7 // indirect
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
-	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-hclog v1.6.3 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
@@ -68,7 +69,6 @@ require (
 	github.com/minio/minio-go/v7 v7.0.70 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
-	github.com/mozillazg/go-slugify v0.2.0 // indirect
 	github.com/mozillazg/go-unidecode v0.2.0 // indirect
 	github.com/ncruces/go-strftime v0.1.9 // indirect
 	github.com/pborman/uuid v1.2.1 // indirect
