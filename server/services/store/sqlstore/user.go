@@ -487,3 +487,42 @@ func (s *SQLStore) getUserWithPermission(db sq.BaseRunner, userID string, permis
 
 	return users[0], nil
 }
+
+func (s *SQLStore) getAllUsers(db sq.BaseRunner) ([]*model.User, error) {
+	query := s.getQueryBuilder(db).
+		Select(
+			"id",
+			"username",
+			"email",
+			"password",
+			"mfa_secret",
+			"auth_service",
+			"auth_data",
+			"create_at",
+			"update_at",
+			"delete_at",
+			"role_id",
+			"matrix_user_id",
+			"volunteer_id",
+		).
+		From(s.tablePrefix + "users").
+		Where(sq.Eq{"delete_at": 0})
+
+	rows, err := query.Query()
+	if err != nil {
+		s.logger.Error("getAllUsers error", mlog.Err(err))
+		return nil, err
+	}
+	defer s.CloseRows(rows)
+
+	users, err := s.usersFromRows(rows)
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func (s *SQLStore) GetAllUsers() ([]*model.User, error) {
+	return s.getAllUsers(s.db)
+}

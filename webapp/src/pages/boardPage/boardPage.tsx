@@ -228,10 +228,14 @@ const BoardPage = (props: Props): JSX.Element => {
     }, [teamId, match.params.boardId, viewId, me?.id])
 
     useEffect(() => {
-        if (match.params.boardId && !props.readonly && me) {
-            loadOrJoinBoard(me, teamId, match.params.boardId)
+        const init = async () => {
+            // Remove automatic board creation
+            if (match.params.boardId && !props.readonly && me) {
+                loadOrJoinBoard(me, teamId, match.params.boardId)
+            }
         }
-    }, [teamId, match.params.boardId, me?.id])
+        init()
+    }, [me?.id, teamId])
 
     const handleUnhideBoard = async (boardID: string) => {
         if (!me || !category) {

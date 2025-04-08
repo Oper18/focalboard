@@ -92,3 +92,11 @@ func (a *App) SanitizeProfile(user *model.User, isAdmin bool) {
 	}
 	user.Sanitize(options)
 }
+
+func (a *App) GetAllUsers() ([]*model.User, error) {
+	users, err := a.store.GetAllUsers()
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}

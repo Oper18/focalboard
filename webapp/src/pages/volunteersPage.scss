@@ -1,23 +1,39 @@
 .VolunteersPage {
-    padding: 40px 60px;
+    padding: 20px;
 
     .header {
-        display: flex;
-        align-items: center;
-        margin-bottom: 24px;
-
-        h2 {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 600;
-            color: rgb(var(--center-channel-color-rgb));
-        }
+        margin-bottom: 20px;
     }
 
     .volunteers-list {
-        background: rgb(var(--center-channel-bg-rgb));
-        border-radius: 8px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .volunteer-item {
         padding: 20px;
-        box-shadow: var(--elevation-1);
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background: #fff;
+
+        h3 {
+            margin: 0 0 10px;
+            font-size: 18px;
+        }
+
+        p {
+            margin: 5px 0;
+            color: #666;
+        }
+    }
+
+    .error {
+        color: #f44336;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #f44336;
+        border-radius: 4px;
+        background: #ffebee;
     }
 }

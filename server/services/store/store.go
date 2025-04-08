@@ -193,6 +193,7 @@ type Store interface {
 	UpdateVolunteer(volunteer *model.Volunteer) (*model.Volunteer, error)
 	GetVolunteer(volunteerID int64) (*model.Volunteer, error)
 	GetVolunteersList(contact string, limit, offset uint64) ([]*model.Volunteer, error)
+	GetAllUsers() ([]*model.User, error)
 }
 
 type NotSupportedError struct {

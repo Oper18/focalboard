@@ -39,6 +39,7 @@ import './workspace.scss'
 
 type Props = {
     readonly: boolean
+    customContent?: React.ReactNode
 }
 
 function CenterContent(props: Props) {
@@ -109,6 +110,10 @@ function CenterContent(props: Props) {
             channelId={match.params.channelId}
         />
     )
+
+    if (props.customContent) {
+        return <>{props.customContent}</>
+    }
 
     if (match.params.channelId) {
         if (me?.is_guest) {
@@ -195,6 +200,7 @@ const Workspace = (props: Props) => {
                 </div>}
                 <CenterContent
                     readonly={props.readonly}
+                    customContent={props.customContent}
                 />
             </div>
         </div>

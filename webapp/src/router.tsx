@@ -124,9 +124,11 @@ const FocalboardRouter = (props: Props): JSX.Element => {
                 >
                     <BoardPage/>
                 </FBRoute>
+
                 <FBRoute path={['/workspace/:workspaceId/shared/:boardId?/:viewId?/:cardId?', '/workspace/:workspaceId/:boardId?/:viewId?/:cardId?']}>
                     <WorkspaceToTeamRedirect/>
                 </FBRoute>
+
                 <FBRoute
                     loginRequired={true}
                     path='/team/:teamId/:boardId?/:viewId?/:cardId?'
