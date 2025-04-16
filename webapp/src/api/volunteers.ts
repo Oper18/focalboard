@@ -2,8 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {IVolunteer} from '../types/volunteer'
-
-import {client} from './client'
+import octoClient from '../octoClient'
 
 export const getVolunteers = async (contact?: string, limit?: number, offset?: number): Promise<IVolunteer[]> => {
     const params = new URLSearchParams()
@@ -17,6 +16,6 @@ export const getVolunteers = async (contact?: string, limit?: number, offset?: n
         params.append('offset', offset.toString())
     }
 
-    const {data} = await client.get<IVolunteer[]>('/volunteers', {params})
-    return data
+    const response = await octoClient.getJson<IVolunteer[]>(await fetch(`${octoClient.getBaseURL()}/volunteers?${params.toString()}`), [])
+    return response
 }
