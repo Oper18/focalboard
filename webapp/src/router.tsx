@@ -99,10 +99,6 @@ const FocalboardRouter = (props: Props): JSX.Element => {
                     component={ChangePasswordPage}
                 />
                 <FBRoute
-                    path='/volunteers'
-                    component={VolunteersPage}
-                />
-                <FBRoute
                     path='/users'
                     component={UsersPage}
                 />
@@ -152,6 +148,12 @@ const FocalboardRouter = (props: Props): JSX.Element => {
                 >
                     <BoardPage/>
                 </FBRoute>
+
+                <FBRoute
+                    loginRequired={true}
+                    path='/team/:teamId/volunteers'
+                    component={VolunteersPage}
+                />
             </Switch>
         </Router>
     )

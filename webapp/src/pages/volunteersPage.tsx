@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useEffect, useState} from 'react'
-import {useHistory} from 'react-router-dom'
+import {useHistory, useParams} from 'react-router-dom'
 
 import Workspace from '../components/workspace'
 import {useAppSelector} from '../store/hooks'
@@ -62,12 +62,13 @@ const VolunteersContent = () => {
 const VolunteersPage = () => {
     const history = useHistory()
     const me = useAppSelector(getMe)
+    const {teamId} = useParams<{teamId: string}>()
 
     // Check if user has admin permissions
     const isAdmin = me?.permissions?.includes('manage_system')
 
     if (!isAdmin) {
-        history.push('/')
+        history.push(`/team/${teamId}`)
         return null
     }
 
