@@ -148,7 +148,6 @@ const FocalboardRouter = (props: Props): JSX.Element => {
                 >
                     <BoardPage/>
                 </FBRoute>
-
                 <FBRoute
                     loginRequired={true}
                     path='/team/:teamId/volunteers'
