@@ -2,6 +2,7 @@
 package main
 
 import (
+	"C"
 	"flag"
 	"log"
 	"os"
@@ -12,7 +13,9 @@ import (
 	"github.com/mattermost/focalboard/server/model"
 	"github.com/mattermost/focalboard/server/server"
 	"github.com/mattermost/focalboard/server/services/config"
-	"github.com/mattermost/focalboard/server/services/permissions/localpermissions"
+)
+import (
+	"github.com/mattermost/focalboard/server/services/permissions/sqlpermissions"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
@@ -133,7 +136,8 @@ func main() {
 		logger.Fatal("server.NewStore ERROR", mlog.Err(err))
 	}
 
-	permissionsService := localpermissions.New(db, logger)
+	// permissionsService := localpermissions.New(db, logger)
+	permissionsService := sqlpermissions.New(db, logger)
 
 	params := server.Params{
 		Cfg:                config,
@@ -160,6 +164,110 @@ func main() {
 	<-stop
 
 	_ = server.Shutdown()
+}
+
+// StartServer starts the server
+//
+//export StartServer
+func StartServer(webPath *C.char, filesPath *C.char, port int, singleUserToken, dbConfigString, configFilePath *C.char) {
+	startServer(
+		C.GoString(webPath),
+		C.GoString(filesPath),
+		port,
+		C.GoString(singleUserToken),
+		C.GoString(dbConfigString),
+		C.GoString(configFilePath),
+	)
+}
+
+// StopServer stops the server
+//
+//export StopServer
+func StopServer() {
+	stopServer()
+}
+
+func startServer(webPath string, filesPath string, port int, singleUserToken, dbConfigString, configFilePath string) {
+	if pServer != nil {
+		stopServer()
+		pServer = nil
+	}
+
+	// config.json file
+	config, err := config.ReadConfigFile(configFilePath)
+	if err != nil {
+		log.Fatal("Unable to read the config file: ", err)
+		return
+	}
+
+	logger, _ := mlog.NewLogger()
+	err = logger.Configure(config.LoggingCfgFile, config.LoggingCfgJSON, nil)
+	if err != nil {
+		log.Fatal("Error in config file for logger: ", err)
+		return
+	}
+
+	model.LogServerInfo(logger)
+
+	if len(filesPath) > 0 {
+		config.FilesPath = filesPath
+	}
+
+	if len(webPath) > 0 {
+		config.WebPath = webPath
+	}
+
+	if port > 0 {
+		config.Port = port
+	}
+
+	if len(dbConfigString) > 0 {
+		config.DBConfigString = dbConfigString
+	}
+
+	singleUser := len(singleUserToken) > 0
+	db, err := server.NewStore(config, singleUser, logger)
+	if err != nil {
+		logger.Fatal("server.NewStore ERROR", mlog.Err(err))
+	}
+
+	// permissionsService := localpermissions.New(db, logger)
+	permissionsService := sqlpermissions.New(db, logger)
+
+	params := server.Params{
+		Cfg:                config,
+		SingleUserToken:    singleUserToken,
+		DBStore:            db,
+		Logger:             logger,
+		PermissionsService: permissionsService,
+	}
+
+	pServer, err = server.New(params)
+	if err != nil {
+		logger.Fatal("server.New ERROR", mlog.Err(err))
+	}
+
+	if err := pServer.Start(); err != nil {
+		logger.Fatal("server.Start ERROR", mlog.Err(err))
+	}
+}
+
+func stopServer() {
+	if pServer == nil {
+		return
+	}
+
+	logger := pServer.Logger()
+
+	err := pServer.Shutdown()
+	if err != nil {
+		logger.Error("server.Shutdown ERROR", mlog.Err(err))
+	}
+
+	if l, ok := logger.(*mlog.Logger); ok {
+		_ = l.Shutdown()
+	}
+	pServer = nil
 }
 
 func defaultLoggingConfig() string {
