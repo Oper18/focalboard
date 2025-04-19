@@ -3,6 +3,7 @@
 import React, {useCallback, useEffect, useState} from 'react'
 import {FormattedMessage} from 'react-intl'
 import {DragDropContext, Droppable, DropResult} from 'react-beautiful-dnd'
+import {useHistory} from 'react-router-dom'
 
 import {getActiveThemeName, loadTheme} from '../../theme'
 import IconButton from '../../widgets/buttons/iconButton'
@@ -47,6 +48,10 @@ import mutator from '../../mutator'
 
 import {Board} from '../../blocks/board'
 
+import UsersIcon from '../widgets/icons/users'
+
+import VolunteerIcon from '../widgets/icons/volunteer'
+
 import SidebarCategory from './sidebarCategory'
 import SidebarSettingsMenu from './sidebarSettingsMenu'
 import SidebarUserMenu from './sidebarUserMenu'
@@ -75,6 +80,7 @@ const Sidebar = (props: Props) => {
     const me = useAppSelector<IUser|null>(getMe)
     const activeViewID = useAppSelector(getCurrentViewId)
     const currentBoard = useAppSelector(getCurrentBoard)
+    const history = useHistory()
 
     useEffect(() => {
         const categoryOnChangeHandler = (_: WSClient, categories: Category[]) => {
@@ -405,19 +411,30 @@ const Sidebar = (props: Props) => {
                 </Droppable>
             </DragDropContext>
 
-            <div className='octo-spacer'/>
-
-            {me?.permissions?.includes('manage_board_properties') ? (
-                <div
-                    className='add-board'
-                    onClick={props.onBoardTemplateSelectorOpen}
-                >
-                    <FormattedMessage
-                        id='Sidebar.add-board'
-                        defaultMessage='+ Add board'
-                    />
+            {me?.permissions?.includes('manage_system') && (
+                <div className='SidebarAdditionalMenu'>
+                    <div
+                        className='menu-entry'
+                        onClick={() => history.push(`/team/${teamId}/volunteers`)}
+                    >
+                        <VolunteerIcon/>
+                        <FormattedMessage
+                            id='Sidebar.volunteers'
+                            defaultMessage='Volunteers'
+                        />
+                    </div>
+                    <div
+                        className='menu-entry'
+                        onClick={() => history.push(`/team/${teamId}/users`)}
+                    >
+                        <UsersIcon/>
+                        <FormattedMessage
+                            id='Sidebar.users'
+                            defaultMessage='Users'
+                        />
+                    </div>
                 </div>
-            ) : null}
+            )}
 
             <SidebarSettingsMenu activeTheme={getActiveThemeName()}/>
         </div>

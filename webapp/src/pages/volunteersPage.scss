@@ -1,0 +1,39 @@
+.VolunteersPage {
+    padding: 20px;
+
+    .header {
+        margin-bottom: 20px;
+    }
+
+    .volunteers-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .volunteer-item {
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background: #fff;
+
+        h3 {
+            margin: 0 0 10px;
+            font-size: 18px;
+        }
+
+        p {
+            margin: 5px 0;
+            color: #666;
+        }
+    }
+
+    .error {
+        color: #f44336;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #f44336;
+        border-radius: 4px;
+        background: #ffebee;
+    }
+}
