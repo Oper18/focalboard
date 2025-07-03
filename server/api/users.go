@@ -65,12 +65,21 @@ func (a *API) handleGetUsersList(w http.ResponseWriter, r *http.Request) {
 	var users []*model.User
 	var error error
 
-	if len(userIDs) == 0 {
-		a.errorResponse(w, r, model.NewErrBadRequest("User IDs are empty"))
+	// if len(userIDs) == 0 {
+	//   a.errorResponse(w, r, model.NewErrBadRequest("User IDs are empty"))
+	//   return
+	// }
+
+	ctx := r.Context()
+	session := ctx.Value(sessionContextKey).(*model.Session)
+	isSystemAdmin := a.permissions.HasPermissionTo(session.UserID, model.PermissionManageSystem)
+
+	if len(userIDs) == 0 && !isSystemAdmin {
+		a.errorResponse(w, r, model.NewErrPermission("not allowed"))
 		return
 	}
 
-	if userIDs[0] == model.SingleUser {
+	if len(userIDs) > 0 && userIDs[0] == model.SingleUser {
 		ws, _ := a.app.GetRootTeam()
 		now := utils.GetMillis()
 		user := &model.User{
@@ -88,10 +97,6 @@ func (a *API) handleGetUsersList(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
-	ctx := r.Context()
-	session := ctx.Value(sessionContextKey).(*model.Session)
-	isSystemAdmin := a.permissions.HasPermissionTo(session.UserID, model.PermissionManageSystem)
 
 	sanitizedUsers := make([]*model.User, 0)
 	for _, user := range users {

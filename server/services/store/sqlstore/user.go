@@ -114,14 +114,18 @@ func (s *SQLStore) getUserByID(db sq.BaseRunner, userID string) (*model.User, er
 }
 
 func (s *SQLStore) getUsersList(db sq.BaseRunner, userIDs []string, _, _ bool) ([]*model.User, error) {
-	users, err := s.getUsersByCondition(db, sq.Eq{fmt.Sprintf("%susers.id", s.tablePrefix): userIDs}, 0)
+	var condition interface{}
+	if len(userIDs) > 0 {
+		condition = sq.Eq{fmt.Sprintf("%susers.id", s.tablePrefix): userIDs}
+	}
+	users, err := s.getUsersByCondition(db, condition, 0)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(users) != len(userIDs) {
-		return users, model.NewErrNotAllFound("user", userIDs)
-	}
+	// if len(users) != len(userIDs) {
+	//   return users, model.NewErrNotAllFound("user", userIDs)
+	// }
 
 	return users, nil
 }

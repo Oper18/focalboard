@@ -68,9 +68,9 @@ func (a *App) GetUser(id string) (*model.User, error) {
 }
 
 func (a *App) GetUsersList(userIDs []string) ([]*model.User, error) {
-	if len(userIDs) == 0 {
-		return nil, errors.New("No User IDs")
-	}
+	// if len(userIDs) == 0 {
+	//   return nil, errors.New("No User IDs")
+	// }
 
 	users, err := a.store.GetUsersList(userIDs, a.config.ShowEmailAddress, a.config.ShowFullName)
 	if err != nil {
